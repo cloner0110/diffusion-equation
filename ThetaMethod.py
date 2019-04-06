@@ -3,8 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.sparse import diags
 from math import pi
-import time
-def theta_Method(dx,h,c,k,nx,dt,nt,D,V,ntout,theta):
+def k_calculator(T):
+    k=T/((1.829*10**(-4))*T**(2))+0.0245
+    return k
+def theta_Method(dx,h,k,nx,dt,nt,D,V,ntout,theta):
     Vout = [] 
     V0 = 120+273 
     Vinf=273+15
@@ -15,10 +17,19 @@ def theta_Method(dx,h,c,k,nx,dt,nt,D,V,ntout,theta):
     for n in range(1,nt): 
         Vn = V
         if theta==1:
+            Acond=pi*0.005*0.005
+            Aconv=pi*2*0.005*0.1
+            t_ave=(Vn[-1]+Vn[-2])/2
+            #switcher for 4th part of the Exercise , disable if you want to use constant K
+            #c=dx*h*Aconv/(k_calculator(t_ave)*Acond)
+            c=dx*h*Aconv/(k*Acond)
             B = Vn[1:-1]
             B[0] = B[0]+s*Vn[0]
             B[-1] = B[-1]+s*Vn[-1]
         else:
+            Acond=pi*0.005*0.005
+            Aconv=pi*2*0.005*0.1
+            c=dx*h*Aconv/(k*Acond)
             B = np.dot(Vn[1:-1],B1) 
             B[0] = B[0]+(1-theta)*s*(V0+V0)
             B[-1] = B[-1]+(1-theta)*s*(Vn[-1]+Vn[-1])
@@ -30,9 +41,7 @@ def theta_Method(dx,h,c,k,nx,dt,nt,D,V,ntout,theta):
     return Vout
 dt = 0.001 
 dx = 0.001
-k=237 ; h=35 ; Acond=pi*0.005*0.005
-Aconv=pi*2*0.005*0.1
-c=dx*h*Aconv/(k*Acond)
+k=237 ; h=35
 theta=1
 alpha = 97.1*10**(-6) 
 y_max = 0.1 
@@ -42,8 +51,8 @@ nt = 9000
 plt.figure(figsize=(7,5))
 V = np.zeros((nx,)) # initial condition
 V[:] = 273+30
-Vout= theta_Method(dx,h,c,k,nx,dt,nt,alpha,V,20,theta)
+Vout= theta_Method(dx,h,k,nx,dt,nt,alpha,V,5,theta)
 for V in Vout:
-    plt.plot(y,V,'k')
+    plt.plot(y,V)
     plt.hold
 plt.show()
